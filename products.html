@@ -1,0 +1,48 @@
+<a href="index.html">
+    <button>🏠 Home</button>
+</a>
+
+<hr>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Products</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Product Management</h2>
+
+<!-- ADD -->
+<h3>Add Product</h3>
+<input id="pid" placeholder="ID">
+<input id="pname" placeholder="Name">
+<input id="pcategory" placeholder="Category">
+<input id="pprice" placeholder="Price">
+<button onclick="addProduct()">Add</button>
+
+<hr>
+
+<!-- UPDATE -->
+<h3>Update Product</h3>
+<input id="eid" placeholder="ID">
+<input id="ename" placeholder="Name">
+<input id="ecategory" placeholder="Category">
+<input id="eprice" placeholder="Price">
+<button onclick="updateProduct()">Update</button>
+
+<hr>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="productTable"></tbody>
+</table>
+
+<script src="script.js"></script>
+<script>loadProducts();</script>
+</body>
+</html>

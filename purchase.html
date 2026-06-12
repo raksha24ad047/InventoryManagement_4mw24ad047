@@ -1,0 +1,58 @@
+<a href="index.html">
+    <button>🏠 Home</button>
+</a>
+
+<hr>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Purchase Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Purchase Management</h2>
+
+<h3>Add Purchase</h3>
+
+<input type="number" id="pid" placeholder="Purchase ID">
+<input type="number" id="psupplier" placeholder="Supplier ID">
+<input type="number" id="pproduct" placeholder="Product ID">
+<input type="number" id="pqty" placeholder="Quantity">
+<input type="date" id="pdate">
+
+<button onclick="addPurchase()">Add Purchase</button>
+
+<hr>
+
+<h3>Update Purchase</h3>
+
+<input type="number" id="epid" placeholder="Purchase ID">
+<input type="number" id="epsupplier" placeholder="Supplier ID">
+<input type="number" id="epproduct" placeholder="Product ID">
+<input type="number" id="epqty" placeholder="Quantity">
+<input type="date" id="epdate">
+
+<button onclick="updatePurchase()">Update Purchase</button>
+
+<hr>
+
+<table border="1">
+<thead>
+<tr>
+<th>ID</th>
+<th>Supplier</th>
+<th>Product</th>
+<th>Quantity</th>
+<th>Date</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="purchaseTable"></tbody>
+</table>
+
+<script src="script.js"></script>
+
+</body>
+</html>

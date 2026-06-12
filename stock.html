@@ -1,0 +1,55 @@
+<a href="index.html">
+    <button>🏠 Home</button>
+</a>
+
+<hr>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Stock Management</h2>
+
+<h3>Add Stock</h3>
+
+<input type="number" id="stid" placeholder="Stock ID">
+<input type="number" id="spid" placeholder="Product ID">
+<input type="number" id="swid" placeholder="Warehouse ID">
+<input type="number" id="sqty" placeholder="Quantity">
+
+<button onclick="addStock()">Add Stock</button>
+
+<hr>
+
+<h3>Update Stock</h3>
+
+<input type="number" id="estid" placeholder="Stock ID">
+<input type="number" id="espid" placeholder="Product ID">
+<input type="number" id="eswid" placeholder="Warehouse ID">
+<input type="number" id="esqty" placeholder="Quantity">
+
+<button onclick="updateStock()">Update Stock</button>
+
+<hr>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Stock ID</th>
+            <th>Product ID</th>
+            <th>Warehouse ID</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody id="stockTable"></tbody>
+</table>
+
+<script src="script.js"></script>
+
+</body>
+</html>

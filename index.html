@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inventory Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Inventory Management System</h1>
+
+<hr>
+
+<a href="products.html">
+    <button>Products</button>
+</a>
+
+<a href="suppliers.html">
+    <button>Suppliers</button>
+</a>
+
+<a href="warehouse.html">
+    <button>Warehouse</button>
+</a>
+
+<a href="stock.html">
+    <button>Stock</button>
+</a>
+
+<a href="purchase.html">
+    <button>Purchase</button>
+</a>
+
+<a href="sales.html">
+    <button>Sales</button>
+</a>
+
+<hr>
+<header>
+    <h1>Inventory Management System</h1>
+</header>
+
+<nav>
+    <a href="#" onclick="loadData('products')">Products</a>
+    <a href="#" onclick="loadData('suppliers')">Suppliers</a>
+    <a href="#" onclick="loadData('purchase')">Purchase</a>
+    <a href="#" onclick="loadData('sales')">Sales</a>
+    <a href="#" onclick="loadData('warehouse')">Warehouse</a>
+    <a href="#" onclick="loadData('stock')">Stock</a>
+</nav>
+
+<div class="container">
+    <h2 id="title">Select a module</h2>
+
+    <table border="1">
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+    </table>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
