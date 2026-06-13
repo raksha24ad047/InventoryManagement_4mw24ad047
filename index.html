@@ -1,62 +1,560 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Inventory Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBMS Inventory Management System</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #18bc9c;
+            --warning: #e67e22;
+            --purple: #9b59b6;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { display: flex; background: #f5f6fa; min-height: 100vh; }
+        
+        /* Sidebar Navigation */
+        nav { width: 260px; background: var(--primary); color: white; padding: 20px 10px; display: flex; flex-direction: column; gap: 8px; }
+        nav h2 { text-align: center; margin-bottom: 20px; font-size: 20px; color: var(--secondary); border-bottom: 2px solid #34495e; padding-bottom: 10px; }
+        nav button { background: none; border: none; color: #bdc3c7; padding: 12px 15px; text-align: left; font-size: 15px; cursor: pointer; border-radius: 5px; transition: 0.2s; }
+        nav button:hover, nav button.active { background: var(--dark); color: white; font-weight: bold; }
+        
+        /* Main Workspace */
+        main { flex: 1; padding: 30px; overflow-y: auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #ddd; padding-bottom: 15px; }
+        h1 { color: var(--primary); }
+        
+        /* Forms & Cards */
+        .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .card h3 { margin-bottom: 15px; color: var(--dark); }
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; align-items: flex-end; }
+        label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 600; color: #555; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; }
+        
+        /* Buttons */
+        .btn { background: var(--secondary); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 12px; height: 41px; }
+        .btn:hover { opacity: 0.9; }
+        .btn-danger { background: var(--danger); padding: 5px 10px; height: auto; font-size: 11px; }
+        .btn-warning { background: var(--warning); height: auto; padding: 8px 15px; font-size: 11px; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
+        th { background: var(--dark); color: white; }
+        tr:hover { background-color: #f9f9f9; }
+        
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        
+        /* System Message Alerts */
+        .alert { padding: 12px; border-radius: 4px; margin-bottom: 15px; color: white; font-weight: 600; display: none; }
+        .alert.error { background: var(--danger); display: block; }
+        .alert.success { background: var(--secondary); display: block; }
+    </style>
 </head>
 <body>
-<h1>Inventory Management System</h1>
 
-<hr>
+    <nav>
+        <h2>Inventory System</h2>
+        <button onclick="switchView('dashboard')" class="nav-btn active" id="btn-dashboard">📊 Dashboard / Queries</button>
+        <button onclick="switchView('supplier')" class="nav-btn" id="btn-supplier">📦 Suppliers</button>
+        <button onclick="switchView('product')" class="nav-btn" id="btn-product">🏷️ Products</button>
+        <button onclick="switchView('warehouse')" class="nav-btn" id="btn-warehouse">🏢 Warehouses</button>
+        <button onclick="switchView('purchase')" class="nav-btn" id="btn-purchase">🛒 Purchases</button>
+        <button onclick="switchView('sales')" class="nav-btn" id="btn-sales">💰 Sales</button>
+        <button onclick="switchView('stock')" class="nav-btn" id="btn-stock">📉 Current Stocks</button>
+        <button onclick="switchView('audit-logs')" class="nav-btn" id="btn-audit-logs">📜 Trigger & Procedure Logs</button>
+    </nav>
 
-<a href="products.html">
-    <button>Products</button>
-</a>
+    <main>
+        <div id="global-alert" class="alert"></div>
 
-<a href="suppliers.html">
-    <button>Suppliers</button>
-</a>
+        <section id="dashboard" class="view-section active">
+            <header><h1>DBMS Execution Dashboard</h1></header>
+            
+            <div class="card">
+                <h3>Stored Procedure Execution Trigger Panel</h3>
+                <p style="margin-bottom: 15px; color:#666; font-size: 14px;">Clicking these manual triggers simulates compilations of production database procedures.</p>
+                <div style="display:flex; gap: 15px;">
+                    <button class="btn" style="background:var(--purple);" onclick="runProcedureStockReport()">Run Procedure: Generate Stock Report</button>
+                    <button class="btn" style="background:var(--warning);" onclick="runProcedureReorderCheck()">Run Procedure: Check Reorder Requirement</button>
+                </div>
+            </div>
 
-<a href="warehouse.html">
-    <button>Warehouse</button>
-</a>
+            <div class="card">
+                <h3>Assignment Executions (Live Evaluated Queries)</h3>
+                <p style="margin-bottom: 15px; color:#666;">These calculations run live using relational operations matching your project documentation requirements.</p>
+                
+                <table id="query-table">
+                    <thead>
+                        <tr><th>Query Description / Target Requirement</th><th>Live System Result Output</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><b>Q5:</b> Count products in each warehouse (GROUP BY)</td><td id="q5-out">-</td></tr>
+                        <tr><td><b>Q6:</b> Warehouses having stock &gt; 1000 units (HAVING)</td><td id="q6-out">-</td></tr>
+                        <tr><td><b>Q7:</b> Products with selling price &gt; average selling price (Subquery)</td><td id="q7-out">-</td></tr>
+                        <tr><td><b>Q9:</b> Display all products including those not sold (LEFT JOIN)</td><td id="q9-out">-</td></tr>
+                        <tr><td><b>Q10:</b> Retrieve products that were never sold (NOT EXISTS)</td><td id="q10-out">-</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-<a href="stock.html">
-    <button>Stock</button>
-</a>
+        <section id="supplier" class="view-section">
+            <header><h1>Manage Suppliers</h1></header>
+            <div class="card">
+                <h3>Add New Supplier</h3>
+                <form id="supplier-form" class="grid-form" onsubmit="addData(event, 'suppliers')">
+                    <label>Supplier ID: <input type="text" id="sup_id" required placeholder="SUP101"></label>
+                    <label>Name: <input type="text" id="sup_name" required></label>
+                    <label>Phone: <input type="text" id="sup_phone" required></label>
+                    <label>Address: <input type="text" id="sup_address" required></label>
+                    <button type="submit" class="btn">Insert</button>
+                </form>
+            </div>
+            <div class="card">
+                <h3>Supplier Table Data</h3>
+                <table>
+                    <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Address</th><th>Action</th></tr></thead>
+                    <tbody id="supplier-rows"></tbody>
+                </table>
+            </div>
+        </section>
 
-<a href="purchase.html">
-    <button>Purchase</button>
-</a>
+        <section id="product" class="view-section">
+            <header><h1>Manage Products</h1></header>
+            <div class="card">
+                <h3>Add New Product</h3>
+                <form id="product-form" class="grid-form" onsubmit="addData(event, 'products')">
+                    <label>Product ID: <input type="text" id="prod_id" required placeholder="PROD201"></label>
+                    <label>Name: <input type="text" id="prod_name" required></label>
+                    <label>Category: <input type="text" id="prod_cat" required></label>
+                    <label>Price ($): <input type="number" step="0.01" id="prod_price" required></label>
+                    <button type="submit" class="btn">Insert</button>
+                </form>
+            </div>
+            <div class="card">
+                <h3>Product Table Data</h3>
+                <table>
+                    <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Action</th></tr></thead>
+                    <tbody id="product-rows"></tbody>
+                </table>
+            </div>
+        </section>
 
-<a href="sales.html">
-    <button>Sales</button>
-</a>
+        <section id="warehouse" class="view-section">
+            <header><h1>Manage Warehouses</h1></header>
+            <div class="card">
+                <h3>Add New Warehouse</h3>
+                <form id="warehouse-form" class="grid-form" onsubmit="addData(event, 'warehouses')">
+                    <label>Warehouse ID: <input type="text" id="wh_id" required placeholder="WH301"></label>
+                    <label>Location: <input type="text" id="wh_loc" required></label>
+                    <button type="submit" class="btn">Insert</button>
+                </form>
+            </div>
+            <div class="card">
+                <h3>Warehouse Table Data</h3>
+                <table>
+                    <thead><tr><th>ID</th><th>Location</th><th>Action</th></tr></thead>
+                    <tbody id="warehouse-rows"></tbody>
+                </table>
+            </div>
+        </section>
 
-<hr>
-<header>
-    <h1>Inventory Management System</h1>
-</header>
+        <section id="purchase" class="view-section">
+            <header><h1>Manage Purchases</h1></header>
+            <div class="card">
+                <h3>Log Purchase Entry (Triggers Stock Addition)</h3>
+                <form id="purchase-form" class="grid-form" onsubmit="addData(event, 'purchases')">
+                    <label>Purchase ID: <input type="text" id="pur_id" required placeholder="PUR401"></label>
+                    <label>Supplier: <select id="pur_sup" required></select></label>
+                    <label>Product: <select id="pur_prod" required></select></label>
+                    <label>Warehouse: <select id="pur_wh" required></select></label>
+                    <label>Quantity: <input type="number" id="pur_qty" min="1" required></label>
+                    <label>Purchase Date: <input type="date" id="pur_date" required></label>
+                    <button type="submit" class="btn">Insert Purchase</button>
+                </form>
+            </div>
+            <div class="card">
+                <h3>Purchase Ledger</h3>
+                <table>
+                    <thead><tr><th>Purchase ID</th><th>Supplier ID</th><th>Product ID</th><th>Qty</th><th>Date</th><th>Action</th></tr></thead>
+                    <tbody id="purchase-rows"></tbody>
+                </table>
+            </div>
+        </section>
 
-<nav>
-    <a href="#" onclick="loadData('products')">Products</a>
-    <a href="#" onclick="loadData('suppliers')">Suppliers</a>
-    <a href="#" onclick="loadData('purchase')">Purchase</a>
-    <a href="#" onclick="loadData('sales')">Sales</a>
-    <a href="#" onclick="loadData('warehouse')">Warehouse</a>
-    <a href="#" onclick="loadData('stock')">Stock</a>
-</nav>
+        <section id="sales" class="view-section">
+            <header><h1>Manage Sales Log</h1></header>
+            <div class="card">
+                <h3>Log Sales Order (Triggers Validation & Stock Deduction)</h3>
+                <form id="sales-form" class="grid-form" onsubmit="addData(event, 'sales')">
+                    <label>Sales ID: <input type="text" id="sale_id" required placeholder="SALE501"></label>
+                    <label>Product: <select id="sale_prod" required></select></label>
+                    <label>Warehouse Source: <select id="sale_wh" required></select></label>
+                    <label>Quantity: <input type="number" id="sale_qty" min="1" required></label>
+                    <label>Selling Price ($): <input type="number" step="0.01" id="sale_price" required></label>
+                    <label>Sales Date: <input type="date" id="sale_date" required></label>
+                    <button type="submit" class="btn">Process Sale</button>
+                </form>
+            </div>
+            <div class="card">
+                <h3>Sales Invoices Table</h3>
+                <table>
+                    <thead><tr><th>Sales ID</th><th>Product ID</th><th>Qty</th><th>Selling Price</th><th>Date</th><th>Action</th></tr></thead>
+                    <tbody id="sales-rows"></tbody>
+                </table>
+            </div>
+        </section>
 
-<div class="container">
-    <h2 id="title">Select a module</h2>
+        <section id="stock" class="view-section">
+            <header><h1>Live Warehouse Inventory Stock Balance</h1></header>
+            <div class="card">
+                <h3>Stock Allocations Table</h3>
+                <table>
+                    <thead><tr><th>Stock ID</th><th>Product ID</th><th>Warehouse ID</th><th>Current Balance Quantity</th></tr></thead>
+                    <tbody id="stock-rows"></tbody>
+                </table>
+            </div>
+        </section>
 
-    <table border="1">
-        <thead id="thead"></thead>
-        <tbody id="tbody"></tbody>
-    </table>
-</div>
+        <section id="audit-logs" class="view-section">
+            <header>
+                <h1>Database Engine Execution Ledger</h1>
+                <button class="btn btn-danger" onclick="clearAuditLogs()">Clear Log History</button>
+            </header>
+            <div class="card">
+                <h3>Live Relational Logs & Trace Stream</h3>
+                <p style="margin-bottom: 15px; color:#666; font-size: 14px;">
+                    This console registers real-time transactional metrics. Every INSERT, DELETE, TRIGGER calculation, or STORED PROCEDURE execution will instantly log down here persistently.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 22%;">Execution Timestamp</th>
+                            <th style="width: 20%;">Operation Type</th>
+                            <th style="width: 58%;">Relational Trace Summary</th>
+                        </tr>
+                    </thead>
+                    <tbody id="audit-log-rows"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
 
-<script src="script.js"></script>
+    <script>
+        // Core Database State Manager (Wired directly with explicit LocalStorage hooks)
+        let db = {
+            suppliers: JSON.parse(localStorage.getItem('db_suppliers')) || [],
+            products: JSON.parse(localStorage.getItem('db_products')) || [],
+            warehouses: JSON.parse(localStorage.getItem('db_warehouses')) || [],
+            purchases: JSON.parse(localStorage.getItem('db_purchases')) || [],
+            sales: JSON.parse(localStorage.getItem('db_sales')) || [],
+            stocks: JSON.parse(localStorage.getItem('db_stocks')) || [],
+            logs: JSON.parse(localStorage.getItem('db_logs')) || []
+        };
 
+        function saveDB() {
+            Object.keys(db).forEach(key => {
+                localStorage.setItem('db_' + key, JSON.stringify(db[key]));
+            });
+            evaluateAssignmentQueries();
+            populateSelectDropdowns();
+        }
+
+        // Unified Logging System Engine
+        function logDBMSAction(type, description) {
+            const timestamp = new Date().toLocaleString();
+            const logEntry = { timestamp, type, description };
+            
+            db.logs.unshift(logEntry); // Push latest data logs to top
+            localStorage.setItem('db_logs', JSON.stringify(db.logs));
+            renderLogTable();
+        }
+
+        function renderLogTable() {
+            const logBody = document.getElementById('audit-log-rows');
+            if (!logBody) return;
+            
+            if (db.logs.length === 0) {
+                logBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#888;">No actions recorded yet. Perform database modifications to run triggers.</td></tr>`;
+                return;
+            }
+            
+            logBody.innerHTML = db.logs.map(log => {
+                let badgeColor = '#34495e';
+                if (log.type === 'TRIGGER') badgeColor = 'var(--warning)';
+                if (log.type === 'PROCEDURE') badgeColor = 'var(--purple)';
+                if (log.type === 'INSERT') badgeColor = 'var(--secondary)';
+                if (log.type === 'DELETE') badgeColor = 'var(--danger)';
+                
+                return `
+                    <tr>
+                        <td style="color: #555; font-size: 13px; font-family: monospace;">${log.timestamp}</td>
+                        <td><span style="background:${badgeColor}; color:white; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; display:inline-block;">${log.type}</span></td>
+                        <td style="font-family: monospace; font-size: 13px; color: #2c3e50;">${log.description}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function clearAuditLogs() {
+            if (confirm("Purge complete local persistent runtime transaction log memory?")) {
+                db.logs = [];
+                localStorage.setItem('db_logs', JSON.stringify(db.logs));
+                renderLogTable();
+            }
+        }
+
+        // Stored Procedures Implementation
+        function runProcedureStockReport() {
+            logDBMSAction('PROCEDURE', `CALL sp_GenerateStockReport(); Evaluation calculated for total of ${db.stocks.length} active inventory rows.`);
+            let reportMsg = `STORED PROCEDURE EXECUTION:\n---\n`;
+            db.stocks.forEach(s => {
+                reportMsg += `Product ID: ${s.product_id} | Warehouse: ${s.warehouse_id} | Available Stock: ${s.quantity} units\n`;
+            });
+            alert(db.stocks.length ? reportMsg : "Procedure executed successfully: No active inventory stocks discovered.");
+        }
+
+        function runProcedureReorderCheck() {
+            logDBMSAction('PROCEDURE', "CALL sp_CheckReorderRequirement(); Evaluated inventory baseline thresholds.");
+            let criticalItems = db.stocks.filter(s => s.quantity < 10);
+            let alertMsg = `CRITICAL REORDER LEVEL SYSTEM REPORT:\n---\n`;
+            criticalItems.forEach(c => {
+                alertMsg += `⚠️ WARNING: Product [${c.product_id}] at Warehouse [${c.warehouse_id}] has dropped to ${c.quantity} units! (Threshold < 10)\n`;
+            });
+            alert(criticalItems.length ? alertMsg : "All warehouse stock distribution metrics sit soundly above baseline reorder thresholds.");
+        }
+
+        // View Switching Router
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(viewId).classList.add('active');
+            document.getElementById('btn-' + viewId).classList.add('active');
+            renderTables();
+            if(viewId === 'audit-logs') renderLogTable();
+        }
+
+        // Dropdown Dynamic Relational Loader
+        function populateSelectDropdowns() {
+            const loadOptions = (elemId, data, idKey, nameKey) => {
+                const el = document.getElementById(elemId);
+                if(!el) return;
+                el.innerHTML = data.map(item => `<option value="${item[idKey]}">${item[idKey]} - ${item[nameKey] || ''}</option>`).join('');
+            };
+            loadOptions('pur_sup', db.suppliers, 'supplier_id', 'name');
+            loadOptions('pur_prod', db.products, 'product_id', 'name');
+            loadOptions('pur_wh', db.warehouses, 'warehouse_id', 'location');
+            loadOptions('sale_prod', db.products, 'product_id', 'name');
+            loadOptions('sale_wh', db.warehouses, 'warehouse_id', 'location');
+        }
+
+        function showAlert(msg, type='success') {
+            const alertBox = document.getElementById('global-alert');
+            alertBox.innerText = msg;
+            alertBox.className = `alert ${type}`;
+            setTimeout(() => { alertBox.className = 'alert'; }, 5000);
+        }
+
+        // Trigger Assertions Logic
+        function executePurchaseTrigger(prodId, whId, qty) {
+            let stockItem = db.stocks.find(s => s.product_id === prodId && s.warehouse_id === whId);
+            if (stockItem) {
+                stockItem.quantity = parseInt(stockItem.quantity) + parseInt(qty);
+            } else {
+                db.stocks.push({
+                    stock_id: 'STK' + Math.floor(Math.random() * 8999 + 1000),
+                    product_id: prodId,
+                    warehouse_id: whId,
+                    quantity: parseInt(qty)
+                });
+            }
+            logDBMSAction('TRIGGER', `trg_AfterPurchaseInsert Fired: Increased stock allocation metrics for Product [${prodId}] inside Warehouse [${whId}] by +${qty} units.`);
+        }
+
+        function testSaleTrigger(prodId, whId, qty) {
+            let stockItem = db.stocks.find(s => s.product_id === prodId && s.warehouse_id === whId);
+            if (!stockItem || parseInt(stockItem.quantity) < parseInt(qty)) {
+                logDBMSAction('TRIGGER', `❌ CONSTRAINT VIOLATION trg_PreventInsufficientSale Fired: Aborted sale processing of ${qty} units of Product [${prodId}] from Warehouse [${whId}] due to insufficient available quantities.`);
+                return false; 
+            }
+            stockItem.quantity = parseInt(stockItem.quantity) - parseInt(qty);
+            logDBMSAction('TRIGGER', `trg_AfterSaleInsert Fired: Successfully calculated deduction of -${qty} units of Product [${prodId}] from Warehouse [${whId}] balances.`);
+            return true;
+        }
+
+        // CRUD Logic Configurations
+        function addData(event, tableKey) {
+            event.preventDefault();
+            let actionLogged = false;
+            let descriptiveSummary = '';
+            
+            if (tableKey === 'suppliers') {
+                const item = {
+                    supplier_id: document.getElementById('sup_id').value,
+                    name: document.getElementById('sup_name').value,
+                    phone: document.getElementById('sup_phone').value,
+                    address: document.getElementById('sup_address').value
+                };
+                if(db.suppliers.some(s => s.supplier_id === item.supplier_id)) return showAlert("Supplier ID already exists!", "error");
+                db.suppliers.push(item);
+                descriptiveSummary = `Appended unique Supplier entity row into table [SUPPLIER]: (ID: ${item.supplier_id}, Name: ${item.name})`;
+                document.getElementById('supplier-form').reset();
+                actionLogged = true;
+            }
+            else if (tableKey === 'products') {
+                const item = {
+                    product_id: document.getElementById('prod_id').value,
+                    name: document.getElementById('prod_name').value,
+                    category: document.getElementById('prod_cat').value,
+                    price: parseFloat(document.getElementById('prod_price').value)
+                };
+                if(db.products.some(p => p.product_id === item.product_id)) return showAlert("Product ID already exists!", "error");
+                db.products.push(item);
+                descriptiveSummary = `Appended unique Product entity row into table [PRODUCT]: (ID: ${item.product_id}, Name: ${item.name}, Price: $${item.price})`;
+                document.getElementById('product-form').reset();
+                actionLogged = true;
+            }
+            else if (tableKey === 'warehouses') {
+                const item = {
+                    warehouse_id: document.getElementById('wh_id').value,
+                    location: document.getElementById('wh_loc').value
+                };
+                if(db.warehouses.some(w => w.warehouse_id === item.warehouse_id)) return showAlert("Warehouse ID already exists!", "error");
+                db.warehouses.push(item);
+                descriptiveSummary = `Appended unique Warehouse asset record into table [WAREHOUSE]: (ID: ${item.warehouse_id}, Location: ${item.location})`;
+                document.getElementById('warehouse-form').reset();
+                actionLogged = true;
+            }
+            else if (tableKey === 'purchases') {
+                const item = {
+                    purchase_id: document.getElementById('pur_id').value,
+                    supplier_id: document.getElementById('pur_sup').value,
+                    product_id: document.getElementById('pur_prod').value,
+                    warehouse_id: document.getElementById('pur_wh').value,
+                    quantity: parseInt(document.getElementById('pur_qty').value),
+                    purchase_date: document.getElementById('pur_date').value
+                };
+                if(db.purchases.some(p => p.purchase_id === item.purchase_id)) return showAlert("Purchase ID already exists!", "error");
+                if(!item.supplier_id || !item.product_id || !item.warehouse_id) return showAlert("Please create prerequisites first!", "error");
+                
+                db.purchases.push(item);
+                logDBMSAction('INSERT', `Inserted record row into [PURCHASE] table: Transaction ID: ${item.purchase_id}, Vol: ${item.quantity}`);
+                executePurchaseTrigger(item.product_id, item.warehouse_id, item.quantity);
+                document.getElementById('purchase-form').reset();
+                actionLogged = false; 
+            }
+            else if (tableKey === 'sales') {
+                const item = {
+                    sales_id: document.getElementById('sale_id').value,
+                    product_id: document.getElementById('sale_prod').value,
+                    warehouse_id: document.getElementById('sale_wh').value,
+                    quantity: parseInt(document.getElementById('sale_qty').value),
+                    selling_price: parseFloat(document.getElementById('sale_price').value),
+                    sales_date: document.getElementById('sale_date').value
+                };
+                if(db.sales.some(s => s.sales_id === item.sales_id)) return showAlert("Sales ID already exists!", "error");
+                if(!item.product_id || !item.warehouse_id) return showAlert("Select Valid relational elements!", "error");
+                
+                let allowed = testSaleTrigger(item.product_id, item.warehouse_id, item.quantity);
+                if (!allowed) {
+                    return showAlert("Database Trigger Blocked Entry: Insufficient Inventory inside Selected Warehouse!", "error");
+                }
+                
+                db.sales.push(item);
+                logDBMSAction('INSERT', `Inserted record row into [SALES] table: Transaction ID: ${item.sales_id}, Vol: ${item.quantity}`);
+                document.getElementById('sales-form').reset();
+                actionLogged = false;
+            }
+
+            if(actionLogged) logDBMSAction('INSERT', descriptiveSummary);
+            saveDB();
+            renderTables();
+            showAlert("Record Saved and Committed to Storage successfully.");
+        }
+
+        function deleteData(tableKey, primaryId, targetField) {
+            db[tableKey] = db[tableKey].filter(row => row[targetField] !== primaryId);
+            logDBMSAction('DELETE', `Dropped target element containing primary key value [${primaryId}] from relational schema table [${tableKey.toUpperCase()}].`);
+            saveDB();
+            renderTables();
+            showAlert("Record successfully removed from persistence module.", "error");
+        }
+
+        // Table Render Compilation Engine
+        function renderTables() {
+            const render = (containerId, data, fields, pKey, tableKey) => {
+                const tbody = document.getElementById(containerId);
+                if(!tbody) return;
+                if(data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="${fields.length + 1}">No active relational table data present.</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = data.map(row => `
+                    <tr>
+                        ${fields.map(f => `<td>${row[f] || '-'}</td>`).join('')}
+                        <td><button class="btn btn-danger" onclick="deleteData('${tableKey}','${row[pKey]}','${pKey}')">Delete</button></td>
+                    </tr>
+                `).join('');
+            };
+
+            render('supplier-rows', db.suppliers, ['supplier_id', 'name', 'phone', 'address'], 'supplier_id', 'suppliers');
+            render('product-rows', db.products, ['product_id', 'name', 'category', 'price'], 'product_id', 'products');
+            render('warehouse-rows', db.warehouses, ['warehouse_id', 'location'], 'warehouse_id', 'warehouses');
+            render('purchase-rows', db.purchases, ['purchase_id', 'supplier_id', 'product_id', 'quantity', 'purchase_date'], 'purchase_id', 'purchases');
+            render('sales-rows', db.sales, ['sales_id', 'product_id', 'quantity', 'selling_price', 'sales_date'], 'sales_id', 'sales');
+
+            const stockBody = document.getElementById('stock-rows');
+            if(stockBody) {
+                stockBody.innerHTML = db.stocks.length === 0 ? `<tr><td colspan="4">No operational logs generated inventory assets yet.</td></tr>` :
+                db.stocks.map(s => `<tr><td>${s.stock_id}</td><td>${s.product_id}</td><td>${s.warehouse_id}</td><td><b>${s.quantity} units</b></td></tr>`).join('');
+            }
+        }
+
+        // Live DBMS Assignment Queries Engine
+        function evaluateAssignmentQueries() {
+            // Q5: GROUP BY Warehouse
+            let whGroup = {};
+            db.stocks.forEach(s => { whGroup[s.warehouse_id] = (whGroup[s.warehouse_id] || 0) + 1; });
+            document.getElementById('q5-out').innerHTML = Object.keys(whGroup).length ? 
+                Object.entries(whGroup).map(([k,v]) => `Warehouse <b>${k}</b>: ${v} Products unique`).join('<br>') : "No stock distribution tracked.";
+
+            // Q6: HAVING Stock > 1000
+            let whTotals = {};
+            db.stocks.forEach(s => { whTotals[s.warehouse_id] = (whTotals[s.warehouse_id] || 0) + s.quantity; });
+            let havingFiltered = Object.entries(whTotals).filter(([k, v]) => v > 1000).map(([k,v]) => `${k} (${v} units)`);
+            document.getElementById('q6-out').innerHTML = havingFiltered.length ? havingFiltered.join(', ') : "None matching threshold (&gt; 1000)";
+
+            // Q7: Subquery Simulation (Price > Avg Price)
+            if (db.sales.length > 0) {
+                let avgSale = db.sales.reduce((acc, curr) => acc + parseFloat(curr.selling_price), 0) / db.sales.length;
+                let aboveAvgProds = db.products.filter(p => parseFloat(p.price) > avgSale).map(p => p.name);
+                document.getElementById('q7-out').innerHTML = aboveAvgProds.length ? `${aboveAvgProds.join(', ')} (Avg: $${avgSale.toFixed(2)})` : "None found matching query parameters.";
+            } else { document.getElementById('q7-out').innerText = "Requires active sales logs to determine baseline average."; }
+
+            // Q9: LEFT JOIN (All products and their sale configurations)
+            document.getElementById('q9-out').innerHTML = db.products.length ? db.products.map(p => {
+                let totalSold = db.sales.filter(s => s.product_id === p.product_id).reduce((acc, c) => acc + c.quantity, 0);
+                return `${p.name} (Sold Volume: ${totalSold})`;
+            }).join(', ') : "No active data schema available.";
+
+            // Q10: NOT EXISTS (Never sold products)
+            let unsold = db.products.filter(p => !db.sales.some(s => s.product_id === p.product_id)).map(p => p.name);
+            document.getElementById('q10-out').innerHTML = unsold.length ? unsold.join(', ') : "Every available inventory stock classification contains a historical invoice reference.";
+        }
+
+        // On System Bootstrap Initialize
+        window.onload = function() {
+            saveDB();
+            renderTables();
+            renderLogTable();
+        };
+    </script>
 </body>
 </html>
